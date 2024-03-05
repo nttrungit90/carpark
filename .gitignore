@@ -8,6 +8,7 @@
 .#*
 .*.md.html
 .idea
+.mvn
 .DS_Store
 .attach_pid*
 .classpath
