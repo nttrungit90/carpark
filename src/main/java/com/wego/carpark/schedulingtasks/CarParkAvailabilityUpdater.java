@@ -3,6 +3,7 @@ package com.wego.carpark.schedulingtasks;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.wego.carpark.model.CarParkAvailability;
 import com.wego.carpark.repository.CarParkAvailabilityRepository;
+import com.wego.carpark.repository.CarParkRepository;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,29 +15,34 @@ import org.springframework.web.client.RestTemplate;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
 @ConditionalOnProperty(
-        value="scheduledtask.UpdateCarParkAvailabilityTask.enabled",
+        value="scheduledtask.CarParkAvailabilityUpdater.enabled",
         havingValue = "true",
         matchIfMissing = false)
 @Slf4j
 @Component
-public class UpdateCarParkAvailabilityTask {
+public class CarParkAvailabilityUpdater {
 
     private static final SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
     private final RestTemplate restTemplate;
     private final CarParkAvailabilityRepository carParkAvailabilityRepository;
+    private final CarParkRepository carParkRepository;
 
     @Value("${carpark.availability.api.url}")
     private String apiUrl;
 
     @Autowired
-    public UpdateCarParkAvailabilityTask(RestTemplate restTemplate,CarParkAvailabilityRepository carParkAvailabilityRepository) {
+    public CarParkAvailabilityUpdater(RestTemplate restTemplate,
+                                      CarParkAvailabilityRepository carParkAvailabilityRepository,
+                                      CarParkRepository carParkRepository) {
         this.restTemplate = restTemplate;
         this.carParkAvailabilityRepository = carParkAvailabilityRepository;
+        this.carParkRepository = carParkRepository;
     }
 
 
@@ -47,7 +53,14 @@ public class UpdateCarParkAvailabilityTask {
 
         ApiResponse apiResponse = restTemplate.getForObject(apiUrl, ApiResponse.class);
 
+        List<CarParkAvailability> carParkAvailabilities = new ArrayList<>();
+        List<String> notExistCarPark = new ArrayList<>();
         for(CarParkData carParkData : apiResponse.getItems().get(0).getCarParkData()) {
+
+            if(carParkRepository.findByCarParkNo(carParkData.getCarParkNumber()).isEmpty()) {
+                notExistCarPark.add(carParkData.getCarParkNumber());
+                continue;
+            }
 
             Date lastUpdateTime = convertToDate(carParkData.getUpdateDatetime());
             for(CarParkInfo carParkInfo : carParkData.getCarParkInfo()) {
@@ -60,7 +73,7 @@ public class UpdateCarParkAvailabilityTask {
 
                 if(carParkAvailabilityOpt.isPresent()) {
                     Date previousUpdateTime = carParkAvailabilityOpt.get().getUpdateDatetime();
-                    if(previousUpdateTime != null || lastUpdateTime.after(previousUpdateTime)) {
+                    if(previousUpdateTime == null || lastUpdateTime.after(previousUpdateTime)) {
                         // update if update_datetime is different with previous time
                         carParkAvailability = carParkAvailabilityOpt.get();
                         carParkAvailability.setTotalLot(Integer.valueOf(carParkInfo.getTotalLots()));
@@ -78,18 +91,20 @@ public class UpdateCarParkAvailabilityTask {
                             .updateDatetime(lastUpdateTime)
                             .build();
                 }
-                try {
-                    if(carParkAvailability != null) {
-                        carParkAvailabilityRepository.save(carParkAvailability);
-                    }
 
-                } catch (Exception e) {
-                    log.error("Error updating carParkAvailability {}", carParkAvailability, e);
+                if(carParkAvailability != null) {
+                    carParkAvailabilities.add(carParkAvailability);
                 }
             }
         }
 
-        log.info("CarParkAvailability updated by scheduling task");
+        if(!notExistCarPark.isEmpty()) {
+            log.warn("CarPark {} does not exist in database", notExistCarPark);
+        }
+
+        carParkAvailabilityRepository.saveAll(carParkAvailabilities);
+
+        log.info("UpdateCarParkAvailabilityTask updated {} record", carParkAvailabilities.size());
     }
 
     @Data

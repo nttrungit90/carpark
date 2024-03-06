@@ -73,12 +73,7 @@ public class CarParkUploadController {
      * @param carParks
      */
     private void processCarParkCsvDto(List<CarParkCsvDto> carParks) {
-        long startTime = System.currentTimeMillis();
-
         carParkUploadService.processCarParkCsvDto(carParks);
-
-        long endTime = System.currentTimeMillis();
-        log.info("Execution Time {}", (endTime - startTime) * 1000);
     }
 
 
