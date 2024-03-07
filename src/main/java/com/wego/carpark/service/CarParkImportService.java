@@ -7,7 +7,6 @@ import com.wego.carpark.mapper.CarParkMapper;
 import com.wego.carpark.model.CarPark;
 import com.wego.carpark.repository.CarParkRepository;
 import com.wego.carpark.utill.GeocodeConverter;
-import jakarta.annotation.PostConstruct;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
