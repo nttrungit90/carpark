@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.wego.carpark.model.CarParkAvailability;
 import com.wego.carpark.repository.CarParkAvailabilityRepository;
 import com.wego.carpark.repository.CarParkRepository;
+import com.wego.carpark.service.CarParkImportService;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,6 +33,7 @@ public class CarParkAvailabilityUpdater {
     private final RestTemplate restTemplate;
     private final CarParkAvailabilityRepository carParkAvailabilityRepository;
     private final CarParkRepository carParkRepository;
+    private final CarParkImportService carParkImportService;
 
     @Value("${carpark.availability.api.url}")
     private String apiUrl;
@@ -39,15 +41,19 @@ public class CarParkAvailabilityUpdater {
     @Autowired
     public CarParkAvailabilityUpdater(RestTemplate restTemplate,
                                       CarParkAvailabilityRepository carParkAvailabilityRepository,
-                                      CarParkRepository carParkRepository) {
+                                      CarParkRepository carParkRepository,
+                                      CarParkImportService carParkImportService) {
         this.restTemplate = restTemplate;
         this.carParkAvailabilityRepository = carParkAvailabilityRepository;
         this.carParkRepository = carParkRepository;
+        this.carParkImportService = carParkImportService;
     }
 
 
     @Scheduled(fixedDelayString = "${fixed.delay.milliseconds}")
     public void updateCarParkAvailability() {
+
+        this.carParkImportService.importCarParkData();
 
         log.info("UpdateCarParkAvailabilityTask started");
 

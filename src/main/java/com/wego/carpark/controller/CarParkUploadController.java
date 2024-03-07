@@ -3,7 +3,7 @@ package com.wego.carpark.controller;
 import com.opencsv.bean.CsvToBean;
 import com.opencsv.bean.CsvToBeanBuilder;
 import com.wego.carpark.dto.CarParkCsvDto;
-import com.wego.carpark.service.CarParkUploadService;
+import com.wego.carpark.service.CarParkImportService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -23,11 +23,11 @@ import java.util.concurrent.CompletableFuture;
 @RestController
 @RequestMapping("/api/carparks")
 public class CarParkUploadController {
-    private final CarParkUploadService carParkUploadService;
+    private final CarParkImportService carParkImportService;
 
     @Autowired
-    public CarParkUploadController(CarParkUploadService carParkUploadService) {
-        this.carParkUploadService = carParkUploadService;
+    public CarParkUploadController(CarParkImportService carParkImportService) {
+        this.carParkImportService = carParkImportService;
 
     }
 
@@ -50,22 +50,7 @@ public class CarParkUploadController {
      * @return List<CarParkCsvDto>
      */
     private List<CarParkCsvDto> processFile(MultipartFile file) {
-        // parse CSV file to create a list of `CarParkCsvDto` objects
-        try (Reader reader = new BufferedReader(new InputStreamReader(file.getInputStream()))) {
-
-            // create csv bean reader
-            CsvToBean<CarParkCsvDto> csvToBean = new CsvToBeanBuilder(reader)
-                    .withType(CarParkCsvDto.class)
-                    .withIgnoreLeadingWhiteSpace(true)
-                    .build();
-
-            // convert `csvToBean` object to list of CarParkCsvDto
-            return csvToBean.parse();
-
-        } catch (IOException e) {
-            log.error("Error uploading file", e);
-            throw new RuntimeException(e);
-        }
+        return carParkImportService.readCarParkCsvDto(file);
     }
 
     /**
@@ -73,7 +58,7 @@ public class CarParkUploadController {
      * @param carParks
      */
     private void processCarParkCsvDto(List<CarParkCsvDto> carParks) {
-        carParkUploadService.processCarParkCsvDto(carParks);
+        carParkImportService.processCarParkCsvDto(carParks);
     }
 
 
