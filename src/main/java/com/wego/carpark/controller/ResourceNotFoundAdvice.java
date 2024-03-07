@@ -7,6 +7,9 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
+/**
+ * Handle error related to NotFoundException thrown by Rest Controller and return appropriate response code, message
+ */
 @ControllerAdvice
 public class ResourceNotFoundAdvice {
 

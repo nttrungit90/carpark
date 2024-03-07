@@ -46,7 +46,7 @@ public class CarParkAvailabilityUpdater {
     }
 
 
-    @Scheduled(fixedDelay = 5*60*1000)
+    @Scheduled(fixedDelayString = "${fixed.delay.milliseconds}")
     public void updateCarParkAvailability() {
 
         log.info("UpdateCarParkAvailabilityTask started");
