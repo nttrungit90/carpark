@@ -48,9 +48,12 @@ The class is CarParkAvailabilityUpdater run every 1 minutes (can be updated via 
 
 - How to calculate distance? Using Haversine formula with code in sql query or using mysql built-in spatial functions https://dev.mysql.com/doc/refman/8.0/en/spatial-convenience-functions.html#function_st-distance-sphere. To make it simple and not coupled to mysql I implemented Haversine formula with in query code. We need to do test to verify the correctness or performance between 2 solutions.
 
+- Database denormalization: Finding the closest available car park currently requires joining two tables, **car_park** and **car_park_availability**. To avoid this join and potentially improve query performance, we can denormalize the database by adding the **longitude** and **latitude** columns to the **car_park_availability** table. Since car park locations are unlikely to change frequently, so not require much maintenance.
+  
 - MySQL Health check command ["CMD", "mysqladmin" ,"ping", "-h", "localhost"], which make carpark app startup failed. After hours search for solution, finally use **atkrad/wait4x** and command **tcp mysqldb:3306 -t 300s -i 250ms**to check mysql connection 
 
 # Further possible improvements
 - Consider using Spring ReST Docs to generate API documentation.
+- Usinf aatabase denormalization to avoid join whery which can be slow. Also thinking about alternative like using materialized views
 - It's worth testing if using built-in MySQL spatial functions for distance queries is more efficient.
 - Even though data is updated every minute and input geocodes vary greatly for each query, is it possible to implement caching to improve performance?
