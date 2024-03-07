@@ -57,3 +57,4 @@ The class is CarParkAvailabilityUpdater run every 1 minutes (can be updated via 
 - Usinf aatabase denormalization to avoid join whery which can be slow. Also thinking about alternative like using materialized views
 - It's worth testing if using built-in MySQL spatial functions for distance queries is more efficient.
 - Even though data is updated every minute and input geocodes vary greatly for each query, is it possible to implement caching to improve performance?
+- Review query pattern, doing testing to add better database index
