@@ -10,4 +10,5 @@ public class NearestCarParkDto {
     private Double longitude;
     private Integer totalLots;
     private Integer availableLots;
+    private Double distance;
 }

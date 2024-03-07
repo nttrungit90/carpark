@@ -9,6 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -25,59 +26,6 @@ public class CarParkService {
         this.carParkRepository = carParkRepository;
     }
 
-    public CarPark create(CarPark carPark) {
-        log.debug("CarPark create action called {}", carPark);
-        return carParkRepository.save(carPark);
-    }
-
-    public List<CarPark> batchCreate(List<CarPark> carParks) {
-        return carParkRepository.saveAll(carParks);
-    }
-
-    public CarPark findOne(Long carParkId) {
-        log.debug("CarPark findById action called {}", carParkId);
-        return carParkRepository.findById(carParkId)
-            .orElseThrow(() -> new NotFoundException("CarPark of id " +  carParkId + " not found."));
-    }
-
-    public List<CarPark> findAll() {
-        log.debug("CarPark findAll action called");
-        return carParkRepository.findAll();
-    }
-    public Optional<CarPark> findByCarParkNo(String carParkNo) {
-        log.debug("CarPark findByCarParkNo action called {}", carParkNo);
-        return carParkRepository.findByCarParkNo(carParkNo);
-    }
-
-    public CarPark update(Long carParkId, CarPark newCarPark) {
-        log.debug("CarPark update action called, id {}, data {}", carParkId, newCarPark);
-        return carParkRepository.findById(carParkId)
-            .map(carPark -> {
-
-                carPark.setAddress(newCarPark.getAddress());
-                carPark.setLongitude(newCarPark.getLongitude());
-                carPark.setLatitude(newCarPark.getLatitude());
-                carPark.setCarParkType(newCarPark.getCarParkType());
-                carPark.setTypeOfParkingSystem(newCarPark.getTypeOfParkingSystem());
-                carPark.setShortTermParking(newCarPark.getShortTermParking());
-                carPark.setFreeParking(newCarPark.getFreeParking());
-                carPark.setNightParking(newCarPark.getNightParking());
-                carPark.setCarParkDecks(newCarPark.getCarParkDecks());
-                carPark.setGantryHeight(newCarPark.getGantryHeight());
-                carPark.setCarParkBasement(newCarPark.getCarParkBasement());
-
-                return carParkRepository.save(carPark);
-            })
-            .orElseGet(() -> {
-                newCarPark.setId(carParkId);
-                return carParkRepository.save(newCarPark);
-            });
-    }
-
-    public void delete(Long carParkId) {
-        log.debug("CarPark delete action called with id {}", carParkId);
-        carParkRepository.deleteById(carParkId);
-    }
 
     /**
      * Find nearest car park with has available lot, order by distance
@@ -85,10 +33,13 @@ public class CarParkService {
      * @param latitude
      * @param page
      * @param perPage
-     * @return
+     * @return List<NearestCarParkDto>
      */
     public List<NearestCarParkDto> findNearestCarPark(Double longitude, Double latitude, int page, int perPage) {
-        List<NearestAvailableCarPark> nearestAvailableCarParks = carParkRepository.findNearestCarPark(longitude, latitude, perPage, (page -1 ) * perPage);
+
+        List<NearestAvailableCarPark> nearestAvailableCarParks = carParkRepository
+                .findNearestCarPark(longitude, latitude, perPage, (page -1 ) * perPage);
+
         return mapToCarParkDto(nearestAvailableCarParks);
     }
 
@@ -105,6 +56,7 @@ public class CarParkService {
                     List<NearestAvailableCarPark> carParks = entry.getValue();
                     return mapToCarParkDto(carParkNo, carParks);
                 })
+                .sorted(Comparator.comparing(NearestCarParkDto::getDistance))
                 .collect(Collectors.toList());
     }
 
@@ -118,6 +70,7 @@ public class CarParkService {
         nearestCarParkDto.setAddress(firstCarPark.getAddress());
         nearestCarParkDto.setLatitude(firstCarPark.getLatitude());
         nearestCarParkDto.setLongitude(firstCarPark.getLongitude());
+        nearestCarParkDto.setDistance(firstCarPark.getDistance());
 
         // Accumulate total and available lots
         int totalLots = carParks.stream().mapToInt(NearestAvailableCarPark::getTotalLot).sum();
@@ -126,5 +79,59 @@ public class CarParkService {
         nearestCarParkDto.setAvailableLots(availableLots);
 
         return nearestCarParkDto;
+    }
+
+    public CarPark create(CarPark carPark) {
+        log.debug("CarPark create action called {}", carPark);
+        return carParkRepository.save(carPark);
+    }
+
+    public List<CarPark> batchCreate(List<CarPark> carParks) {
+        return carParkRepository.saveAll(carParks);
+    }
+
+    public CarPark findOne(Long carParkId) {
+        log.debug("CarPark findById action called {}", carParkId);
+        return carParkRepository.findById(carParkId)
+                .orElseThrow(() -> new NotFoundException("CarPark of id " +  carParkId + " not found."));
+    }
+
+    public List<CarPark> findAll() {
+        log.debug("CarPark findAll action called");
+        return carParkRepository.findAll();
+    }
+    public Optional<CarPark> findByCarParkNo(String carParkNo) {
+        log.debug("CarPark findByCarParkNo action called {}", carParkNo);
+        return carParkRepository.findByCarParkNo(carParkNo);
+    }
+
+    public CarPark update(Long carParkId, CarPark newCarPark) {
+        log.debug("CarPark update action called, id {}, data {}", carParkId, newCarPark);
+        return carParkRepository.findById(carParkId)
+                .map(carPark -> {
+
+                    carPark.setAddress(newCarPark.getAddress());
+                    carPark.setLongitude(newCarPark.getLongitude());
+                    carPark.setLatitude(newCarPark.getLatitude());
+                    carPark.setCarParkType(newCarPark.getCarParkType());
+                    carPark.setTypeOfParkingSystem(newCarPark.getTypeOfParkingSystem());
+                    carPark.setShortTermParking(newCarPark.getShortTermParking());
+                    carPark.setFreeParking(newCarPark.getFreeParking());
+                    carPark.setNightParking(newCarPark.getNightParking());
+                    carPark.setCarParkDecks(newCarPark.getCarParkDecks());
+                    carPark.setGantryHeight(newCarPark.getGantryHeight());
+                    carPark.setCarParkBasement(newCarPark.getCarParkBasement());
+
+                    return carParkRepository.save(carPark);
+                })
+                .orElseGet(() -> {
+                    newCarPark.setId(carParkId);
+                    return carParkRepository.save(newCarPark);
+                });
+    }
+
+    public void delete(Long carParkId) {
+        log.debug("CarPark delete action called with id {}", carParkId);
+        carParkRepository.deleteById(carParkId);
     }
 }

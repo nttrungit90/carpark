@@ -20,6 +20,19 @@ public class CarParkController {
         this.carParkService = carParkService;
     }
 
+    @GetMapping("/nearest")
+    public List<NearestCarParkDto> findNearestCarPark(@RequestParam(name = "longitude") Double longitude,
+                                                      @RequestParam(name = "latitude") Double latitude,
+                                                      @RequestParam(name = "page") int page,
+                                                      @RequestParam(name = "per_page") int perPage) {
+
+
+        log.debug("CarParkController findNearestCarPark method called with longitude {}, latitude {}, page {}, perPage {}",
+                longitude, latitude, page, perPage);
+
+        return carParkService.findNearestCarPark(longitude, latitude, page, perPage);
+    }
+
     @PostMapping
     public CarPark create(@RequestBody CarPark carPark) {
         log.debug("CarParkController create method called with data {}", carPark);
@@ -48,19 +61,6 @@ public class CarParkController {
     public void delete(@PathVariable Long id) {
         log.debug("CarParkController delete method called with id: {}", id);
         carParkService.delete(id);
-    }
-
-    @GetMapping("/nearest")
-    public List<NearestCarParkDto> findNearestCarPark(@RequestParam(name = "longitude") Double longitude,
-                                                      @RequestParam(name = "latitude") Double latitude,
-                                                      @RequestParam(name = "page") int page,
-                                                      @RequestParam(name = "per_page") int perPage) {
-
-
-        log.debug("CarParkController findNearestCarPark method called with longitude {}, latitude {}, page {}, perPage {}",
-                longitude, latitude, page, perPage);
-
-        return carParkService.findNearestCarPark(longitude, latitude, page, perPage);
     }
 
 }
