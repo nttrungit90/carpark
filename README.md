@@ -25,9 +25,9 @@ The class is CarParkAvailabilityUpdater run every 1 minutes (can be updated via 
 
 # How to build and run
 - Need to have maven, java version 17 and docker installed
-- Build using maven: mvn clean install
+- Compiles the project source code, runs tests and packages the project into a JAR: **_mvn clean install_**
 - Run with docker compose: **_docker-compose up_**
-- Wait 1 minutes for CarParkAvailabilityUpdater to import carpark data from file_ **resource/HDBCarparkInformation.csv**_ and pull for carpark availability from _**API Endpoint: https://api.data.gov.sg/v1/transport/carpark-availability**_
+- Wait 1 minutes for CarParkAvailabilityUpdater to import carpark data from file **_resource/HDBCarparkInformation.csv_** and pull for carpark availability from _**API Endpoint: https://api.data.gov.sg/v1/transport/carpark-availability**_
 - Test the application: http://localhost:8090/api/carparks/nearest?longitude=103.85412&latitude=1.30106&page=1&per_page=10
 
 # Scalability and Availability
@@ -40,7 +40,7 @@ The class is CarParkAvailabilityUpdater run every 1 minutes (can be updated via 
 - Choosing Sql or NoSql database? Finally decided to use Sql database based on below considerations and assumptions
   - Data has a well-defined schema and structured format
   - Application requires complex queries involving joins now or maybe in the future
-  - Scalability: Data set is small for now and will not increase too much, we can sharding data based on some criteria such as geographic location (e.g., provinces, countries)
+  - Scalability: Data set is small for now, even when data from more provinces/countries are included, it is still expected to be less than 1 million. We can sharding data based on some criteria such as geographic location (e.g., provinces, countries)
 
 - When importing HDBCarparkInformation.csv, I initially called an external API to convert geocodes from 3414 (SVY21) to 4326 (WGS84). However, since the API required an access token, I registered for an account and obtained one. Unfortunately, this API is both slow and limited to 250 calls per period, significantly extending the import process (approximately 10 minutes). Fortunately, I discovered the locationtech.proj4j library, which allows direct import and use, reducing the import time to a few seconds.
 
